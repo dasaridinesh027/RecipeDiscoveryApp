@@ -10,9 +10,28 @@ import SwiftData
 
 @main
 struct RecipeDiscoveryAppDemoApp: App {
-    var sharedModelContainer: ModelContainer = {
+    
+    //var favourites = FavouritesViewModel()
+    
+
+
+    var body: some Scene {
+        WindowGroup {
+            TabContentView()
+        }
+        .modelContainer(SharedModelContainer.shared)
+        //.environmentObject(favourites)
+    }
+}
+
+
+struct SharedModelContainer {
+    // Singleton container
+    static let shared: ModelContainer = {
+        
         let schema = Schema([
             Item.self,
+            RecipeEntity.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
@@ -21,12 +40,6 @@ struct RecipeDiscoveryAppDemoApp: App {
         } catch {
             fatalError("Could not create ModelContainer: \(error)")
         }
+        
     }()
-
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
-        .modelContainer(sharedModelContainer)
-    }
 }
