@@ -10,39 +10,62 @@ import SwiftData
 import SwiftUI
 
 @MainActor
-class FavouritesViewModel:ObservableObject {
-    
-    
+class FavouritesViewModel: ObservableObject {
+
+    @ObservedObject private var alertManager = AlertManager.shared
     @Published var recipes: [RecipeEntity] = []
-    @Published var errorMessage: String?
-    @Published var showAlert = false
-    
+    @Published var searchText: String = ""
+
+
+     let dataManager = SwiftDataManager.shared
+
     
     init() {
+        Task { await fetchFavourites() }
     }
+
+ 
     
-    func getFavourites() {
-        print(#function)
-        do {
-            recipes = try  SwiftDataManager.shared.fetchRecipes()
-            print("Fetched recipe:", recipes)
-        } catch {
-            showAlert = true
-            errorMessage = error.localizedDescription
+    func fetchFavourites() async {
+         do {
+             if searchText.isEmpty {
+                 recipes = try await dataManager.fetchRecipes()
+             } else {
+                 recipes = try await dataManager.fetchRecipes(searchText: searchText)
+             }
+         } catch {
+             showError(error)
+         }
+     }
+    
+       func deleteRecipe(_ recipe: RecipeEntity) async {
+           do {
+               try await dataManager.deleteRecipe(recipe)
+               //await fetchFavourites()
+               
+               // Update local array immediately
+               if let index = recipes.firstIndex(where: { $0.id == recipe.id }) {
+                   recipes.remove(at: index)
+               }
+           } catch {
+               showError(error)
+           }
+       }
+    
+    func fetchFavouritesFor(_ query: String) async {
+        
+        searchText = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !searchText.isEmpty else {
+            alertManager.show(title: "Alert", message: "Please enter a search term")
+            return
         }
         
-    }
-    
-    func deleteRecipe(_ entity: RecipeEntity) {
-        do {
-           try  SwiftDataManager.shared.deleteRecipe(entity)
-        } catch {
-            showAlert = true
-            errorMessage = error.localizedDescription
+            searchText = query.trimmingCharacters(in: .whitespacesAndNewlines)
+            await fetchFavourites()
         }
+    
+    private func showError(_ error: Error) {
+        alertManager.show(title: "Error", message: error.localizedDescription)
     }
-    
-    
-    
 }
 

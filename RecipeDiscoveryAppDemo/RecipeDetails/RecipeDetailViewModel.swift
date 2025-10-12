@@ -6,43 +6,51 @@
 //
 
 import Foundation
+import SwiftUI
 
 @MainActor
-class RecipeDetailViewModel:ObservableObject {
+class RecipeDetailViewModel: ObservableObject {
     
     
+    @ObservedObject private var alertManager = AlertManager.shared
+
     @Published var recipe: Recipe?
     @Published var isLoading = false
-    @Published var errorMessage: String?
-    @Published var showAlert = false
+    @Published  var isFavourite = false
     
-  
+    init() {
+     }
     
-    func loadRecipeWithID(_ recipeID: Int?) async {
-        
+    /// Loads a recipe by ID
+    func loadRecipe(withID recipeID: Int?) async {
         guard let id = recipeID else {
-            showAlert = true
-            errorMessage = "No recipe ID provided."
+            alertManager.show(title: "Alert", message: "No recipe ID provided.")
             return
         }
         
         isLoading = true
         defer { isLoading = false }
         
-        errorMessage = nil
         
         do {
             let endpoint = API.Endpoint.recipe(id: id).urlString
-            print("Fetching data from: \(endpoint)")
+            print("Fetching recipe from:", endpoint)
+            
+            // Fetch the recipe
             let data = try await APIManager.shared.getData(Recipe.self, from: endpoint)
             recipe = data
+            print("Recipe fetched:", recipe ?? "nil")
             
-            //recipe = try await APIManager.shared.getDataFromEndpoint(endpoint)
-            print("Fetched recipe:", recipe)
         } catch {
-
-            showAlert = true
-            errorMessage = error.localizedDescription
+            showError(error)
+           
         }
     }
+        
+    private func showError(_ error: Error) {
+        alertManager.show(title: "Error", message: error.localizedDescription)
+    }
 }
+
+
+

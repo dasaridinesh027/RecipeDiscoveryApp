@@ -15,6 +15,7 @@ struct API {
         case recipe(id: Int)
         case search
         case mealType(type: String)
+        case tags
         case tag(type: String)
         
         var urlString: String {
@@ -29,6 +30,8 @@ struct API {
                     return "\(API.baseURL)/meal-type/\(type)"
                 case .tag(type: let type):
                     return "\(API.baseURL)/tag/\(type)"
+                case .tags:
+                    return "\(API.baseURL)/tags"
             }
         }
     }

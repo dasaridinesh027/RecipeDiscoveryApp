@@ -9,195 +9,210 @@ import SwiftUI
 
 struct RecipeListView: View {
     
-    
+    @StateObject private var alertManager = AlertManager.shared
+
     @StateObject private var vm = RecipeViewModel()
     @State var showSortingPopup = false
     
-    @State private var selectedTag: UUID? = nil
+   
     @State private var searchText = ""
     
     var body: some View {
         ZStack {
             NavigationView {
-                
                 ZStack {
-                    VStack() {
+                    VStack(spacing: 10) {
                         searchView()
                         tagsView()
                         recipeList()
                     }
+                    .padding(.top)
+                    .blur(radius: showSortingPopup ? 20 : 0)
+                    .disabled(showSortingPopup)
+                    .animation(.easeInOut, value: showSortingPopup)
+                    
                     
                     if vm.isLoading {
-                        LoadingView()
+                        ZStack {
+                            Color.black.opacity(0.2).edgesIgnoringSafeArea(.all)
+                            LoadingView()
+                        }
                     }
                 }
-                .navigationTitle("Recieps")
+                .navigationTitle("Recipes")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .navigationBarTrailing) {
-                        Button(action: {
-                            print("Sort button tapped")
+                        Button {
                             showSortingPopup = true
-                            
-                        }) {
+                        } label: {
                             Image(systemName: "arrow.up.arrow.down")
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 20, height: 20)
-                                .foregroundColor(.black)
+                                .foregroundColor(.accentColor)
                         }
                     }
                 }
-            }
-            .alert("Alert", isPresented: $vm.showAlert) {
-                Button("OK", role: .cancel) {
+                .attachAlertManager(alertManager)
+                .onAppear {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        if vm.recipes.isEmpty {
+                            vm.loadMoreIfNeeded()
+                        }
+                    }
+                    
                 }
-            } message: {
-                Text(vm.errorMessage ?? "")
+                
+                
             }
-            
-            .onAppear() {
-                print("\n onAppear called")
-                if vm.recipes.isEmpty { loadMoreIfNeeded() }
-            }
-            .blur(radius: showSortingPopup ? 20 : 0)
-            .disabled(showSortingPopup )
             
             if showSortingPopup {
+                
                 SortOptionView(showSortingPopup: $showSortingPopup, vm: vm)
+                    .transition(.opacity)
             }
+            
+            
+            
         }
-        
     }
-    
     
     
     @ViewBuilder
     func searchView() -> some View {
-        
-        HStack {
+        HStack(spacing: 8) {
+            // Search icon
             Image(systemName: "magnifyingglass")
                 .foregroundColor(.gray)
+            
+            // Search text field
             TextField("Search recipes...", text: $searchText)
                 .textFieldStyle(PlainTextFieldStyle())
+                .padding(8)
+                .background(Color.clear)
+                .cornerRadius(8)
                 .overlay(
                     HStack {
                         Spacer()
                         if !searchText.isEmpty {
                             Button(action: {
                                 searchText = ""
-                                callAPI(API.Endpoint.recipes.urlString)
+                                vm.recipes.removeAll()
+                                vm.selectedTag = nil
+                                vm.callAPI(API.Endpoint.recipes.urlString)
                             }) {
                                 Image(systemName: "xmark.circle.fill")
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(.gray)
+                                    .padding(.trailing, 8)
                             }
-                            .padding(.trailing, 8)
                         }
                     }
                 )
-                .padding()
             
-            Button("Search") {
-                callSearchAPI()
+            //Search button
+            Button(action: {
+                vm.selectedTag = nil
+                vm.callSearchAPI(searchText)
+                
+
+            }) {
+                Text("Search")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(.black)
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 14)
+                    .background(Color(.systemGray4))
+                    .cornerRadius(8)
             }
-            
         }
         .padding(.horizontal)
+        .padding(.vertical, 6)
         .background(Color(.systemGray6))
-        .cornerRadius(10)
-        .padding()
-        
+        .cornerRadius(12)
+        .padding(.horizontal)
     }
+    
+        
+    
     @ViewBuilder
     func tagsView() -> some View {
-        HStack() {
-            
-            ForEach(tagNames) { tagName in
-                Button(action: {
-                    selectedTag = tagName.id
-                    vm.recipes.removeAll()
-                    vm.skip = vm.recipes.count
-                    callAPI(API.Endpoint.tag(type: tagName.title).urlString)
-                    
-                }) {
-                    Text(tagName.title)
-                        .frame(maxWidth: .infinity)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.5)
-                    
-                }.padding(5)
-                    .frame(height: 40)
-                    .foregroundColor(selectedTag == tagName.id ? Color.white : Color.black)
-                    .background(selectedTag == tagName.id ? Color.gray : Color.white)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 5)
-                            .stroke(Color.gray, lineWidth: 1)
-                    )
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 10) {
+               
+                ForEach(vm.tags, id: \.self) { tagName in
+                    Button(action: {
+                        vm.selectedTag = tagName
+                        vm.recipes.removeAll()
+                        vm.skip = vm.recipes.count
+                        vm.callAPI(API.Endpoint.tag(type: tagName).urlString)
+                    }) {
+                        Text(tagName)
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(vm.selectedTag == tagName ? .white : .black)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(vm.selectedTag == tagName ? Color.blue : Color(.systemGray6))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(vm.selectedTag == tagName ? Color.blue : Color.gray, lineWidth: 1)
+                            )
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                    }
+                }
             }
+            .padding(.horizontal)
+            .padding(.vertical, 6)
         }
-        .padding()
     }
+    
     
     @ViewBuilder
     func recipeList() -> some View {
         ZStack {
-            if  !vm.recipes.isEmpty {
-                // print("\n recipes::\(vm.recipes.count)")
-                List{
-                    ForEach(vm.recipes){ recipe in
+            if !vm.recipes.isEmpty {
+                List {
+                    ForEach(vm.recipes) { recipe in
                         NavigationLink(destination: RecipeDetailView(recipeID: recipe.id)) {
                             RecipeCellView(recipe: recipe)
                         }
-                        .listStyle(.plain)
-                        .onAppear() {
-                            
-                            if recipe.id == vm.recipes.count {
-                                print("\(recipe.id)==\(vm.recipes.count)")
-                                loadMoreIfNeeded()
+                        .onAppear {
+                            if recipe == vm.recipes.last {
+                                vm.loadMoreIfNeeded()
                             }
-                            
                         }
                     }
+                    
+                    if vm.isLoading {
+                        HStack {
+                            Spacer()
+                            ProgressView()
+                                .padding()
+                            Spacer()
+                        }
+                        .listRowSeparator(.hidden)
+                    }
                 }
-            }else{
-                EmptyStateView(imageName: "recipeIcon",
-                               message: "No recipes found")
+                .listStyle(.plain)
+                .scrollIndicators(.hidden)
+            } else if vm.isLoading {
+                ZStack {
+                    Color.black.opacity(0.2).edgesIgnoringSafeArea(.all)
+                    LoadingView()
+                }
+            } else {
+                EmptyStateView(
+                    imageName: "recipeIcon",
+                    message: "No recipes found"
+                )
             }
         }
     }
-    private func callSearchAPI() {
-        
-        let text = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        if text.isEmpty {
-            vm.showAlert = true
-            vm.errorMessage = "Please enter a search term"
-        }
-        else{
-            vm.recipes.removeAll()
-            vm.skip = vm.recipes.count
-            let params: [String: Any] = ["q": searchText]
-            Task{
-                await vm.loadRecipesWith(params)
-            }
-        }
-        
-    }
-    private func callAPI(_ api: String) {
-        Task{
-            await vm.loadRecipes(api)
-        }
-    }
-    
-    private func loadMoreIfNeeded() {
-        guard !vm.isLoading, vm.hasMoreData else { return }
-        
-        let params: [String: Any] = ["limit": vm.limit, "skip": vm.skip,
-                                     "sortBy":vm.sortBy, "order": vm.order]
-        Task{
-            await vm.loadRecipesWith(params)
-        }
-    }
-    
+   
 }
 #Preview {
     RecipeListView()
