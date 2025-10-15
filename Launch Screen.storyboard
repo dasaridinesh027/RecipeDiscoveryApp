@@ -3,6 +3,7 @@
     <device id="retina6_12" orientation="portrait" appearance="light"/>
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23721"/>
+        <capability name="Image references" minToolsVersion="12.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -15,18 +16,50 @@
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Recipe Discovery App" textAlignment="center" lineBreakMode="middleTruncation" baselineAdjustment="alignBaselines" minimumFontSize="18" translatesAutoresizingMaskIntoConstraints="NO" id="GJd-Yh-RWb">
-                                <rect key="frame" x="43.333333333333343" y="433" width="306.33333333333326" height="36"/>
-                                <fontDescription key="fontDescription" type="boldSystem" pointSize="30"/>
-                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                <nil key="highlightedColor"/>
-                            </label>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="6no-2B-8nQ">
+                                <rect key="frame" x="114.33333333333333" y="354" width="164.33333333333337" height="194.33333333333337"/>
+                                <subviews>
+                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="22H-fQ-t9T">
+                                        <rect key="frame" x="22.333333333333329" y="0.6666666666666643" width="119.99999999999999" height="118.66666666666669"/>
+                                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" constant="120" id="Y9R-RE-Gf6"/>
+                                            <constraint firstAttribute="height" constant="120" id="xWx-ql-PlH"/>
+                                        </constraints>
+                                        <imageReference key="image" image="fork.knife.circle.fill" catalog="system" renderingMode="original"/>
+                                    </imageView>
+                                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Recipe Discovery" textAlignment="center" lineBreakMode="middleTruncation" baselineAdjustment="alignBaselines" minimumFontSize="18" translatesAutoresizingMaskIntoConstraints="NO" id="GJd-Yh-RWb">
+                                        <rect key="frame" x="0.0" y="140" width="164.33333333333334" height="26.333333333333343"/>
+                                        <fontDescription key="fontDescription" style="UICTFontTextStyleTitle2"/>
+                                        <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Find. Cook. Enjoy." textAlignment="center" lineBreakMode="middleTruncation" baselineAdjustment="alignBaselines" minimumFontSize="18" translatesAutoresizingMaskIntoConstraints="NO" id="rdl-or-AIT">
+                                        <rect key="frame" x="0.0" y="176.33333333333337" width="164.33333333333334" height="18"/>
+                                        <fontDescription key="fontDescription" style="UICTFontTextStyleSubhead"/>
+                                        <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                </subviews>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <constraints>
+                                    <constraint firstAttribute="trailing" secondItem="GJd-Yh-RWb" secondAttribute="trailing" id="Ex5-x3-MOY"/>
+                                    <constraint firstItem="GJd-Yh-RWb" firstAttribute="leading" secondItem="6no-2B-8nQ" secondAttribute="leading" id="LKl-eZ-AxG"/>
+                                    <constraint firstItem="22H-fQ-t9T" firstAttribute="centerX" secondItem="6no-2B-8nQ" secondAttribute="centerX" id="Vl9-7H-eRn"/>
+                                    <constraint firstAttribute="bottom" secondItem="rdl-or-AIT" secondAttribute="bottom" id="f7G-ee-bJh"/>
+                                    <constraint firstItem="rdl-or-AIT" firstAttribute="trailing" secondItem="GJd-Yh-RWb" secondAttribute="trailing" id="g9y-b6-qSp"/>
+                                    <constraint firstItem="rdl-or-AIT" firstAttribute="leading" secondItem="GJd-Yh-RWb" secondAttribute="leading" id="iRc-zV-Dkv"/>
+                                    <constraint firstItem="22H-fQ-t9T" firstAttribute="top" secondItem="6no-2B-8nQ" secondAttribute="top" id="jEZ-c0-8uH"/>
+                                    <constraint firstItem="rdl-or-AIT" firstAttribute="top" secondItem="GJd-Yh-RWb" secondAttribute="bottom" constant="10" id="nTQ-u3-4jQ"/>
+                                    <constraint firstItem="GJd-Yh-RWb" firstAttribute="top" secondItem="22H-fQ-t9T" secondAttribute="bottom" constant="20" id="wtV-Mp-mLs"/>
+                                </constraints>
+                            </view>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="Bcu-3y-fUS"/>
-                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <color key="backgroundColor" red="1" green="0.95294117647058818" blue="0.8784313725490196" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
-                            <constraint firstItem="Bcu-3y-fUS" firstAttribute="centerX" secondItem="GJd-Yh-RWb" secondAttribute="centerX" id="Q3B-4B-g5h"/>
-                            <constraint firstItem="GJd-Yh-RWb" firstAttribute="centerY" secondItem="Bcu-3y-fUS" secondAttribute="centerY" id="duA-KP-9do"/>
+                            <constraint firstItem="6no-2B-8nQ" firstAttribute="centerX" secondItem="Bcu-3y-fUS" secondAttribute="centerX" id="ASn-ki-drm"/>
+                            <constraint firstItem="6no-2B-8nQ" firstAttribute="centerY" secondItem="Bcu-3y-fUS" secondAttribute="centerY" id="Ifk-ct-GUY"/>
                         </constraints>
                     </view>
                 </viewController>
@@ -35,4 +68,7 @@
             <point key="canvasLocation" x="53" y="375"/>
         </scene>
     </scenes>
+    <resources>
+        <image name="fork.knife.circle.fill" catalog="system" width="128" height="123"/>
+    </resources>
 </document>

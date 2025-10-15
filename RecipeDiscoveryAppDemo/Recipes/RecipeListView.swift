@@ -9,73 +9,81 @@ import SwiftUI
 
 struct RecipeListView: View {
     
-    @StateObject private var alertManager = AlertManager.shared
-
     @StateObject private var vm = RecipeViewModel()
     @State var showSortingPopup = false
     
-   
+    
     @State private var searchText = ""
     
     var body: some View {
-        ZStack {
-            NavigationView {
-                ZStack {
-                    VStack(spacing: 10) {
-                        searchView()
-                        tagsView()
-                        recipeList()
-                    }
-                    .padding(.top)
-                    .blur(radius: showSortingPopup ? 20 : 0)
-                    .disabled(showSortingPopup)
-                    .animation(.easeInOut, value: showSortingPopup)
+        NavigationView {
+            ZStack {
+                VStack(spacing: 10) {
+                    searchView()
+                    tagsView()
                     
                     
-                    if vm.isLoading {
-                        ZStack {
-                            Color.black.opacity(0.2).edgesIgnoringSafeArea(.all)
-                            LoadingView()
-                        }
-                    }
+                    recipeList()
                 }
-                .navigationTitle("Recipes")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button {
-                            showSortingPopup = true
-                        } label: {
-                            Image(systemName: "arrow.up.arrow.down")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 20, height: 20)
-                                .foregroundColor(.accentColor)
-                        }
-                    }
-                }
-                .attachAlertManager(alertManager)
-                .onAppear {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        if vm.recipes.isEmpty {
-                            vm.loadMoreIfNeeded()
-                        }
-                    }
-                    
-                }
+                .padding(.top)
+                .blur(radius: showSortingPopup ? 20 : 0)
+                .disabled(showSortingPopup)
+                .animation(.easeInOut, value: showSortingPopup)
                 
+                
+                if vm.isLoading {
+                    LoadingView(message: "Please wait fetching Data...")
+                    
+                }
+            }
+            .navigationTitle("Recipes")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar{
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        
+                        
+                        vm.alertManager.showConfirmation(
+                            title: "Confirmation",
+                            message: "Are you sure? you want to logout?",
+                            confirmAction: {
+                                print("logout!")
+                                AppState.shared.logout()
+                            }
+                        )
+                        
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "rectangle.portrait.and.arrow.right")
+                            Text("Logout")
+                        }
+                        .font(.system(size: 14, weight:.medium))
+                        .foregroundColor(.accentColor)
+                    }
+                }
                 
             }
             
+            .attachAlertManager(vm.alertManager)
+            .onAppear {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    if vm.recipes.isEmpty {
+                        vm.loadMoreIfNeeded()
+                    }
+                }
+                
+            }
+            
+            
+        }.overlay{
             if showSortingPopup {
                 
-                SortOptionView(showSortingPopup: $showSortingPopup, vm: vm)
+                SortOptionView( showSortingPopup: $showSortingPopup, vm: vm)
                     .transition(.opacity)
             }
-            
-            
-            
         }
+        
+        
     }
     
     
@@ -112,10 +120,17 @@ struct RecipeListView: View {
             
             //Search button
             Button(action: {
-                vm.selectedTag = nil
-                vm.callSearchAPI(searchText)
+                let trimmedText = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
                 
-
+                guard !trimmedText.isEmpty else {
+                    vm.alertManager.show(title: "Alert", message: "Please enter a search term")
+                    return
+                }
+                
+                vm.selectedTag = nil
+                vm.callSearchAPI(trimmedText)
+                
+                
             }) {
                 Text("Search")
                     .font(.system(size: 15, weight: .semibold))
@@ -133,40 +148,77 @@ struct RecipeListView: View {
         .padding(.horizontal)
     }
     
-        
+    
     
     @ViewBuilder
     func tagsView() -> some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 10) {
-               
-                ForEach(vm.tags, id: \.self) { tagName in
-                    Button(action: {
-                        vm.selectedTag = tagName
-                        vm.recipes.removeAll()
-                        vm.skip = vm.recipes.count
-                        vm.callAPI(API.Endpoint.tag(type: tagName).urlString)
-                    }) {
-                        Text(tagName)
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(vm.selectedTag == tagName ? .white : .black)
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 8)
-                            .background(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(vm.selectedTag == tagName ? Color.blue : Color(.systemGray6))
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(vm.selectedTag == tagName ? Color.blue : Color.gray, lineWidth: 1)
-                            )
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.8)
+        HStack() {
+            
+            Button(action: {
+                showSortingPopup = true
+            }) {
+                HStack(spacing: 6) {
+                    Image(systemName: "arrow.up.arrow.down.circle.fill")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20, height: 20)
+                        .foregroundStyle(
+                            LinearGradient(colors: [.orange, .red], startPoint: .top, endPoint: .bottom)
+                        )
+                    
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(Color(.systemGray6))
+                .cornerRadius(8)
+                .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
+            }.padding(.leading, 18)
+            
+            //if !vm.tags.isEmpty {
+            
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    
+                    ForEach(vm.tags, id: \.self) { tagName in
+                        Button(action: {
+
+                            if vm.selectedTag == tagName {
+                               
+                                vm.selectedTag = nil
+                                vm.recipes.removeAll()
+                                vm.skip = 0
+                                vm.callAPI(API.Endpoint.recipes.urlString)
+                            } else {
+                                
+                                vm.selectedTag = tagName
+                                vm.recipes.removeAll()
+                                vm.skip = 0
+                                vm.callAPI(API.Endpoint.tag(type: tagName).urlString)
+                            }
+                        }) {
+                            Text(tagName)
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(vm.selectedTag == tagName ? .white : .black)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 8)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(vm.selectedTag == tagName ? Color.orange : Color(.systemGray6))
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(vm.selectedTag == tagName ? Color.orange : Color.gray, lineWidth: 1)
+                                )
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
+                        }
                     }
                 }
+                .padding(.horizontal,6)
+                .padding(.vertical, 6)
             }
-            .padding(.horizontal)
-            .padding(.vertical, 6)
+            // }
         }
     }
     
@@ -199,12 +251,7 @@ struct RecipeListView: View {
                 }
                 .listStyle(.plain)
                 .scrollIndicators(.hidden)
-            } else if vm.isLoading {
-                ZStack {
-                    Color.black.opacity(0.2).edgesIgnoringSafeArea(.all)
-                    LoadingView()
-                }
-            } else {
+            }else {
                 EmptyStateView(
                     imageName: "recipeIcon",
                     message: "No recipes found"
@@ -212,7 +259,7 @@ struct RecipeListView: View {
             }
         }
     }
-   
+    
 }
 #Preview {
     RecipeListView()

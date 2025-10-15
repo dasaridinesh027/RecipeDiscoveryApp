@@ -11,7 +11,7 @@ import SwiftUI
 @MainActor
 class RecipeViewModel: ObservableObject {
 
-    @ObservedObject private var alertManager = AlertManager.shared
+    @ObservedObject  var alertManager = AlertManager.shared
     @Published var sortByOptionID: Int? = nil
     
     typealias Tags = [String]
@@ -150,12 +150,7 @@ class RecipeViewModel: ObservableObject {
     }
     
      func callSearchAPI(_ searchText: String) {
-        let trimmedText = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        guard !trimmedText.isEmpty else {
-            alertManager.show(title: "Alert", message: "Please enter a search term")
-            return
-        }
+    
         
         recipes.removeAll()
         skip = 0
@@ -163,7 +158,7 @@ class RecipeViewModel: ObservableObject {
         sortBy = ""
         order = ""
         
-        let params: [String: Any] = ["q": trimmedText]
+        let params: [String: Any] = ["q": searchText]
         
         Task { @MainActor in
             await loadRecipesWith(params)

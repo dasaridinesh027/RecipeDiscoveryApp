@@ -5,7 +5,6 @@
 //  Created by My Mac on 10/10/25.
 //
 
-import SwiftUICore
 import SwiftUI
 
 struct RemoteImageView: View {

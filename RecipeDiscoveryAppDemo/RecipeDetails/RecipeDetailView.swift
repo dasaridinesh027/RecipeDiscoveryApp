@@ -10,7 +10,6 @@ import SwiftData
 
 struct RecipeDetailView: View {
        
-    @ObservedObject private var alertManager = AlertManager.shared
 
     @EnvironmentObject var favourites: FavouritesViewModel
     let recipeID: Int?
@@ -38,7 +37,7 @@ struct RecipeDetailView: View {
             }
             
             if vm.isLoading {
-                LoadingView()
+                LoadingView(message: "Please wait fetching Data...")
             }
         }
         .navigationTitle("Recipe Details")
@@ -49,9 +48,9 @@ struct RecipeDetailView: View {
                     Task {
                         if !vm.isFavourite {
                             await addToFavourites()
-                            alertManager.show(title: "Success", message: "Added to favourites")
+                            vm.alertManager.show(title: "Success", message: "Added to favourites")
                         }else{
-                            alertManager.show(title: "Recipe already added to favourites", message: "")
+                            vm.alertManager.show(title: "Alert", message: "Recipe already added to favourites")
                         }
                   
                         //await addToFavourites()
@@ -66,7 +65,7 @@ struct RecipeDetailView: View {
               
             }
         }
-        .attachAlertManager(alertManager)
+        .attachAlertManager(vm.alertManager)
         .task {
             await vm.loadRecipe(withID: recipeID)
             if let recipe = vm.recipe {
@@ -285,7 +284,7 @@ struct RecipeDetailView: View {
             
             
         } catch {
-            alertManager.show(title: "Error", message: error.localizedDescription)
+            vm.alertManager.show(title: "Error", message: error.localizedDescription)
         }
     }
 

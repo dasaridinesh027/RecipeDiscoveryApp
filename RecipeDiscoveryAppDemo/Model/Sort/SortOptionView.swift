@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct SortOptionView: View {
-
+    
     @Binding var showSortingPopup: Bool
     @ObservedObject var vm: RecipeViewModel
 
@@ -39,8 +39,8 @@ struct SortOptionView: View {
                             .foregroundColor(.black)
                         Spacer()
                         if vm.sortByOptionID == item.id {
-                            Image(systemName: "checkmark")
-                                .foregroundColor(.blue)
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.gray)
                         }
                     }
                     
@@ -109,18 +109,4 @@ struct DismissButton: View {
 
 
 
-struct SortOption: Identifiable {
-    let id: Int
-    let title: String
-    
-    static let all: [SortOption] = [
-        SortOption(id: 1, title: "Name ↑"),
-        SortOption(id: 2, title: "Name ↓"),
-        SortOption(id: 3, title: "Cooking Time (Short) ↑"),
-        SortOption(id: 4, title: "Cooking Time (Long) ↓"),
-        SortOption(id: 5, title: "Rating (High) ↑"),
-        SortOption(id: 6, title: "Rating (Low) ↓"),
-        SortOption(id: 7, title: "Difficulty (High) ↑"),
-        SortOption(id: 8, title: "Difficulty (Low) ↓"),
-    ]
-}
+

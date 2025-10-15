@@ -46,59 +46,7 @@ class SwiftDataManager {
         }
     }
     
-    @MainActor
-    func deleteRecipe(_ recipe: RecipeEntity) async throws {
-        context.delete(recipe)
-        do {
-            try context.save()
-            print("Deleted \(recipe.name)")
-        } catch {
-            print("Failed to delete: \(error)")
-            throw error
-        }
-    }
     
-    
-    @MainActor
-    func fetchRecipes(searchText: String? = nil) async throws -> [RecipeEntity] {
-        var descriptor: FetchDescriptor<RecipeEntity>
-
-        if let query = searchText, !query.isEmpty {
-            descriptor = FetchDescriptor<RecipeEntity>(
-                predicate: #Predicate { recipe in
-                    recipe.name.localizedStandardContains(query)
-                },
-                sortBy: [SortDescriptor(\.name)]
-            )
-        } else {
-            descriptor = FetchDescriptor<RecipeEntity>(
-                sortBy: [SortDescriptor(\.name)]
-            )
-        }
-        
-        
-        do {
-           let recipes: [RecipeEntity] = try context.fetch(descriptor)
-            return recipes
-        } catch {
-            throw error
-        }
-    }
-    
-    @MainActor
-    func isRecipeFavourite(_ id: Int) -> Bool {
-        do {
-            let descriptor = FetchDescriptor<RecipeEntity>(
-                predicate: #Predicate { $0.id == id }
-            )
-            let results = try context.fetch(descriptor)
-            return !results.isEmpty
-        } catch {
-            print("Failed to check favourite: \(error)")
-            return false
-        }
-    }
-
     @MainActor
     func deleteRecipeByID(_ id: Int) async throws {
         let descriptor = FetchDescriptor<RecipeEntity>(
@@ -116,7 +64,69 @@ class SwiftDataManager {
         }
     }
 
+    
+//    @MainActor
+//    func fetchRecipes(searchText: String? = nil) async throws -> [RecipeEntity] {
+//        var descriptor: FetchDescriptor<RecipeEntity>
+//
+//        if let query = searchText, !query.isEmpty {
+//            descriptor = FetchDescriptor<RecipeEntity>(
+//                predicate: #Predicate { recipe in
+//                    recipe.name.localizedStandardContains(query)
+//                },
+//                sortBy: [SortDescriptor(\.name)]
+//            )
+//        } else {
+//            descriptor = FetchDescriptor<RecipeEntity>(
+//                sortBy: [SortDescriptor(\.name)]
+//            )
+//        }
+//        
+//        
+//        do {
+//           let recipes: [RecipeEntity] = try context.fetch(descriptor)
+//            return recipes
+//        } catch {
+//            throw error
+//        }
+//    }
+    
+    @MainActor
+    func fetchRecipes(searchText: String? = nil, sortBy: [SortDescriptor<RecipeEntity>] = [SortDescriptor(\.name, order: .forward)]) async throws -> [RecipeEntity] {
+        
+        let descriptor: FetchDescriptor<RecipeEntity>
+        
+        if let query = searchText, !query.isEmpty {
+            descriptor = FetchDescriptor<RecipeEntity>(
+                predicate: #Predicate { $0.name.localizedStandardContains(query) },
+                sortBy: sortBy
+            )
+        } else {
+            descriptor = FetchDescriptor<RecipeEntity>(sortBy: sortBy)
+        }
+        
+        do {
+            let recipes: [RecipeEntity] = try context.fetch(descriptor)
+            return recipes
+        } catch {
+            throw error
+        }
+    }
 
+    
+    @MainActor
+    func isRecipeFavourite(_ id: Int) -> Bool {
+        do {
+            let descriptor = FetchDescriptor<RecipeEntity>(
+                predicate: #Predicate { $0.id == id }
+            )
+            let results = try context.fetch(descriptor)
+            return !results.isEmpty
+        } catch {
+            print("Failed to check favourite: \(error)")
+            return false
+        }
+    }
 
 
 }

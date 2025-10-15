@@ -11,61 +11,53 @@ import SwiftData
 
 struct FavouritesListView: View {
     
-    @ObservedObject private var alertManager = AlertManager.shared
     @EnvironmentObject var vm: FavouritesViewModel
     @State private var searchText = ""
+    @State var showFavouritesSortingPopup = false
     
     var body: some View {
         NavigationView {
             ZStack {
                 VStack(spacing: 0) {
                     searchView()
+                    favouritesList()
                     
-                    if vm.recipes.isEmpty {
-                        EmptyStateView(imageName: "favouriteIcon",
-                                       message: "You have no recipes in your favourites.\nPlease add a recipe!")
-                        .padding()
-                    }else {
-                        List {
-                            ForEach(vm.recipes, id: \.id) { recipe in
-                                NavigationLink(destination: RecipeDetailView(recipeID: recipe.id)) {
-                                    RecipeCellView(recipe: Recipe(entity: recipe))
-                                }
-                            }
-                            .onDelete { indexSet in
-                                alertManager.showConfirmation(
-                                    title: "",
-                                    message: "Are you sure? you want to delete this recipe?",
-                                    confirmAction: {
-                                        print("Confirmed!")
-                                        if let index = indexSet.first {
-                                            let entity = vm.recipes[index]
-                                            Task {
-                                                await vm.deleteRecipe(entity)
-                                            }
-                                        }
-                                    }
-                                )
-                                
-                              
-                                
-                            }
-                        }
-                        .listStyle(PlainListStyle())
-                    }
                 }
+                .padding(.top)
+                .blur(radius: showFavouritesSortingPopup ? 20 : 0)
+                .disabled(showFavouritesSortingPopup)
+                .animation(.easeInOut, value: showFavouritesSortingPopup)
             }
             
             .navigationTitle("Favourites")
             .navigationBarTitleDisplayMode(.inline)
-            .attachAlertManager(alertManager)
+            .toolbar{
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        showFavouritesSortingPopup = true
+                    }) {
+                        Image(systemName: "arrow.up.arrow.down")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20, height: 20)
+                            .foregroundColor(.accentColor)
+                    }
+                }
+            }
+            .attachAlertManager(vm.alertManager)
             .onAppear {
                 Task { await vm.fetchFavourites() }
+            }
+        }.overlay{
+            if showFavouritesSortingPopup {
+                FavouritesSortOptionView(showFavouritesSortingPopup: $showFavouritesSortingPopup, vm: vm)
+                
             }
         }
         
         
     }
+    
     
     
     
@@ -90,7 +82,7 @@ struct FavouritesListView: View {
                                 searchText = ""
                                 vm.searchText = ""
                                 Task {
-                                    await vm.fetchFavourites()
+                                    await vm.fetchFavourites(sortOrder: vm.sortDescriptor)
                                 }
                                 
                             }) {
@@ -106,8 +98,15 @@ struct FavouritesListView: View {
             
             //Search button
             Button(action: {
+                
+                let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !query.isEmpty else {
+                    vm.alertManager.show(title: "Alert", message: "Please enter a search term")
+                    return
+                }
+                
                 Task {
-                    await vm.fetchFavouritesFor(searchText)
+                    await vm.fetchFavouritesFor(query)
                 }
             }) {
                 Text("Search")
@@ -124,6 +123,45 @@ struct FavouritesListView: View {
         .background(Color(.systemGray6))
         .cornerRadius(12)
         .padding(.horizontal)
+    }
+    
+    @ViewBuilder
+    func favouritesList() -> some View {
+        ZStack {
+            if vm.recipes.isEmpty {
+                EmptyStateView(imageName: "favouriteIcon",
+                               message: "You have no recipes in your favourites.\nPlease add a recipe!")
+                .padding()
+            }else {
+                List {
+                    ForEach(vm.recipes, id: \.id) { recipe in
+                        NavigationLink(destination: RecipeDetailView(recipeID: recipe.id)) {
+                            RecipeCellView(recipe: Recipe(entity: recipe))
+                        }
+                    }
+                    .onDelete { indexSet in
+                        vm.alertManager.showConfirmation(
+                            title: "Confirmation",
+                            message: "Are you sure? you want to delete this recipe?",
+                            confirmAction: {
+                                print("Confirmed!")
+                                if let index = indexSet.first {
+                                    let entity = vm.recipes[index]
+                                    
+                                    Task {
+                                        await vm.deleteRecipe(entity)
+                                    }
+                                }
+                            }
+                        )
+                        
+                        
+                        
+                    }
+                }
+                .listStyle(PlainListStyle())
+            }
+        }
     }
 }
 

@@ -12,35 +12,43 @@ import SwiftUI
 @MainActor
 class FavouritesViewModel: ObservableObject {
 
-    @ObservedObject private var alertManager = AlertManager.shared
+    @ObservedObject var alertManager = AlertManager.shared
     @Published var recipes: [RecipeEntity] = []
-    @Published var searchText: String = ""
-
-
+    
+    var searchText: String = ""
+    var sortDescriptor: [SortDescriptor<RecipeEntity>] = [SortDescriptor(\.name, order: .forward)]
+    
+    @Published var sortFavouritesByOptionID: Int = 1 {
+           didSet { Task {  await fetchFavourites(searchText, sortOrder: sortDescriptor) } }
+       }
+    
      let dataManager = SwiftDataManager.shared
 
     
     init() {
-        Task { await fetchFavourites() }
+        Task {
+            await fetchFavourites()
+        }
     }
-
- 
     
-    func fetchFavourites() async {
-         do {
-             if searchText.isEmpty {
-                 recipes = try await dataManager.fetchRecipes()
-             } else {
-                 recipes = try await dataManager.fetchRecipes(searchText: searchText)
-             }
-         } catch {
-             showError(error)
-         }
-     }
+
+    func fetchFavourites(_ text: String? = nil, sortOrder: [SortDescriptor<RecipeEntity>] = [SortDescriptor(\.name, order: .forward)]) async {
+        
+        print("\nfetchFavourites  text:::\(text ?? ""),  Sorting by:", sortDescriptor.map { "\($0.keyPath) (\($0.order == .forward ? "ASC" : "DESC"))\n" })
+
+        
+        do {
+            recipes = try await dataManager.fetchRecipes(searchText: text, sortBy: sortOrder)
+            
+        } catch {
+            showError(error)
+        }
+    }
+    
     
        func deleteRecipe(_ recipe: RecipeEntity) async {
            do {
-               try await dataManager.deleteRecipe(recipe)
+               try await dataManager.deleteRecipeByID(recipe.id)
                //await fetchFavourites()
                
                // Update local array immediately
@@ -53,16 +61,19 @@ class FavouritesViewModel: ObservableObject {
        }
     
     func fetchFavouritesFor(_ query: String) async {
-        
-        searchText = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !searchText.isEmpty else {
-            alertManager.show(title: "Alert", message: "Please enter a search term")
-            return
+        searchText = query
+        await fetchFavourites(searchText)
+
         }
+    
+    
+    func fetchFavouritesSort() {
         
-            searchText = query.trimmingCharacters(in: .whitespacesAndNewlines)
-            await fetchFavourites()
+        Task {
+            await fetchFavourites(searchText, sortOrder: sortDescriptor)
         }
+    }
+    
     
     private func showError(_ error: Error) {
         alertManager.show(title: "Error", message: error.localizedDescription)
