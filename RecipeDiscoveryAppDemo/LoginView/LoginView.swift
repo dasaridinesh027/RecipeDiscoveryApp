@@ -8,8 +8,7 @@
 import SwiftUI
 
 struct LoginView: View {
-    
-    @ObservedObject var alertManager = AlertManager.shared
+    @StateObject private var alertManager = AlertViewManager.shared
     @StateObject private var vm = LoginViewModel()
     
     @State private var username: String = "test@test.com"
@@ -62,7 +61,7 @@ struct LoginView: View {
                         Spacer()
                         
                         Button {
-                    
+                            
                             Task {
                                 await vm.login(username: username, password: password)
                             }
@@ -78,7 +77,7 @@ struct LoginView: View {
                                 
                                 Text(vm.isLoading ? "LOGGING IN..." : "LOGIN")
                                     .font(.headline)
-                                    //.fontWeight(.bold)
+                                //.fontWeight(.bold)
                                     .foregroundColor(.white)
                             }
                             .padding(.vertical, 12)
@@ -93,20 +92,20 @@ struct LoginView: View {
                     }
                     
                 }.padding(.horizontal, 30)
-                .attachAlertManager(vm.alertManager)
+                    .attachAlertManager(vm.alertViewManager)
                 
-//                if vm.isLoading {
-//                    LoadingView(message: "Logging in...")
-//                }
+                //                if vm.isLoading {
+                //                    LoadingView(message: "Logging in...")
+                //                }
                 
-           
-                .disabled(vm.isLoading)
-            }   .navigationDestination(isPresented: $vm.isLoggedIn) {
-                TabContentView()
-                    .navigationBarBackButtonHidden(true)
+                
+                    .disabled(vm.isLoading)
+            }
+            .navigationDestination(isPresented: $vm.isLoggedIn) {
+                TabContentView().navigationBarBackButtonHidden(true)
             }
             
-    
+            
             
         }
     }

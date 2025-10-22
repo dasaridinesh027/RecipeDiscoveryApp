@@ -12,7 +12,7 @@ import SwiftUI
 class RecipeDetailViewModel: ObservableObject {
     
     
-    @ObservedObject var alertManager = AlertManager.shared
+    @ObservedObject var alertManager = AlertViewManager.shared
 
     @Published var recipe: Recipe?
     @Published var isLoading = false

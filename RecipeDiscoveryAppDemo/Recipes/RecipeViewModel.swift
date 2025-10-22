@@ -11,7 +11,7 @@ import SwiftUI
 @MainActor
 class RecipeViewModel: ObservableObject {
 
-    @ObservedObject  var alertManager = AlertManager.shared
+    @ObservedObject  var alertManager = AlertViewManager.shared
     @Published var sortByOptionID: Int? = nil
     
     typealias Tags = [String]

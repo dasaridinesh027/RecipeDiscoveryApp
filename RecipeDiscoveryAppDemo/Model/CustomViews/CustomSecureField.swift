@@ -27,10 +27,13 @@ struct CustomSecureField: View {
             Group {
                 if isSecure {
                     SecureField(placeholder, text: $text)
+                        .accessibilityIdentifier(placeholder)
                 } else {
                     TextField(placeholder, text: $text)
+                        .accessibilityIdentifier(placeholder)
                 }
             }
+            
             .autocapitalization(.none)
             .disableAutocorrection(true)
             .foregroundColor(.black)

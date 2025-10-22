@@ -12,7 +12,7 @@ import SwiftUI
 @MainActor
 class FavouritesViewModel: ObservableObject {
 
-    @ObservedObject var alertManager = AlertManager.shared
+    @ObservedObject var alertManager = AlertViewManager.shared
     @Published var recipes: [RecipeEntity] = []
     
     var searchText: String = ""
@@ -78,5 +78,7 @@ class FavouritesViewModel: ObservableObject {
     private func showError(_ error: Error) {
         alertManager.show(title: "Error", message: error.localizedDescription)
     }
+    
+
 }
 

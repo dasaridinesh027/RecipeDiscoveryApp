@@ -27,7 +27,6 @@ final class RecipeEntity {
     var reviewCount: Int
     var mealTypeData: Data
 
-    // Convenience initializer from API struct
     init(from recipe: Recipe) {
         self.id = recipe.id
         self.name = recipe.name

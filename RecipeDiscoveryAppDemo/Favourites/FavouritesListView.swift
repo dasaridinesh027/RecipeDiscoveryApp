@@ -15,6 +15,9 @@ struct FavouritesListView: View {
     @State private var searchText = ""
     @State var showFavouritesSortingPopup = false
     
+    @State private var showDeleteAlert = false
+    @State private var recipePendingDelete: RecipeEntity? = nil
+    
     var body: some View {
         NavigationView {
             ZStack {
@@ -45,6 +48,19 @@ struct FavouritesListView: View {
                 }
             }
             .attachAlertManager(vm.alertManager)
+            .alert("Delete Recipe?", isPresented: $showDeleteAlert, presenting: recipePendingDelete) { recipe in
+                Button("Cancel", role: .cancel) {
+                    recipePendingDelete = nil
+                }
+                Button("Delete", role: .destructive) {
+                    Task {
+                        await vm.deleteRecipe(recipe)
+                        recipePendingDelete = nil
+                    }
+                }
+            } message: { recipe in
+                Text("Are you sure you want to delete “\(recipe.name ?? "this recipe")”?")
+            }
             .onAppear {
                 Task { await vm.fetchFavourites() }
             }
@@ -133,31 +149,40 @@ struct FavouritesListView: View {
                                message: "You have no recipes in your favourites.\nPlease add a recipe!")
                 .padding()
             }else {
+                
+                
+                
                 List {
                     ForEach(vm.recipes, id: \.id) { recipe in
                         NavigationLink(destination: RecipeDetailView(recipeID: recipe.id)) {
                             RecipeCellView(recipe: Recipe(entity: recipe))
                         }
-                    }
-                    .onDelete { indexSet in
-                        vm.alertManager.showConfirmation(
-                            title: "Confirmation",
-                            message: "Are you sure? you want to delete this recipe?",
-                            confirmAction: {
-                                print("Confirmed!")
-                                if let index = indexSet.first {
-                                    let entity = vm.recipes[index]
-                                    
-                                    Task {
-                                        await vm.deleteRecipe(entity)
-                                    }
-                                }
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            Button(role: .destructive) {
+                                recipePendingDelete = recipe
+                                showDeleteAlert = true
+                                
+//                                vm.alertManager.showConfirmation(
+//                                                title: "Confirmation",
+//                                                message: "Are you sure you want to delete this recipe?",
+//                                                confirmTitle: "Delete",
+//                                                cancelTitle: "Cancel",
+//                                                confirmAction: {
+//                                                    Task {
+//                                                        await vm.deleteRecipe(recipe)
+//                                                    }
+//                                                },
+//                                                cancelAction: {
+//                                                    print("Cancelled")
+//                                                }
+//                                            )
+                            } label: {
+                                Label("Delete", systemImage: "trash")
                             }
-                        )
-                        
-                        
-                        
+                        }
                     }
+                    
+                     
                 }
                 .listStyle(PlainListStyle())
             }

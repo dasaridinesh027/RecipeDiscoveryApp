@@ -11,7 +11,7 @@ struct TabContentView: View {
     
     @State private var selectedTab = 0
     @StateObject private var favourites = FavouritesViewModel()
-    @ObservedObject var alertManager = AlertManager.shared
+    @ObservedObject var alertManager = AlertViewManager.shared
     
     var body: some View {
         TabView(selection: $selectedTab) {

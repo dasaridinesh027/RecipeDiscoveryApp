@@ -41,16 +41,21 @@ struct RecipeListView: View {
             .toolbar{
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
-                        
-                        
                         vm.alertManager.showConfirmation(
-                            title: "Confirmation",
-                            message: "Are you sure? you want to logout?",
-                            confirmAction: {
-                                print("logout!")
-                                AppState.shared.logout()
-                            }
-                        )
+                                           title: "Logout",
+                                           message: "Are you sure you want to logout?",
+                                           confirmTitle: "Logout",
+                                           cancelTitle: "Cancel",
+                                           confirmAction: {
+                                               print("Logged out")
+                                               AppState.shared.logout()},
+                                           cancelAction: {
+                                               print("Cancelled")
+                                           }
+                                       )
+                        
+                        
+                    
                         
                     } label: {
                         HStack(spacing: 4) {

@@ -21,6 +21,7 @@ struct CustomTextField: View {
             }
             
             TextField(placeholder, text: $text)
+                .accessibilityIdentifier(placeholder)
                 .disabled(isDisabled)
                 .autocapitalization(.none)
                 .disableAutocorrection(true)

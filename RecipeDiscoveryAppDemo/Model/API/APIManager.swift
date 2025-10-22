@@ -28,7 +28,7 @@ class APIManager {
             }
             
             //            if let jsonString = String(data: data, encoding: .utf8) {
-            //                print("📦 Raw JSON response:\n\(jsonString)")
+            //                print(" Raw JSON response:\n\(jsonString)")
             //            }
             
             let recipes = try JSONDecoder().decode(Recipes.self, from: data)
